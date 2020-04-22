@@ -24,6 +24,7 @@ mount -o compress=lzo,subvol=@pkg /dev/vda2 /mnt/var/cache/pacman/pkg
 mount -o compress=lzo,subvol=@srv /dev/vda2 /mnt/srv
 mount -o compress=lzo,subvol=@tmp /dev/vda2 /mnt/var/tmp
 
-pacstrap /mnt base base-devel snapper vim openssh linux linux-firmware grub btrfs-progs
+pacstrap /mnt base base-devel linux linux-firmware grub btrfs-progs openssh \
+  vim snapper git subversion bat exa
 
 genfstab -U /mnt >> /mnt/etc/fstab
