@@ -25,6 +25,8 @@ mount -o compress=lzo,subvol=@srv /dev/vda2 /mnt/srv
 mount -o compress=lzo,subvol=@tmp /dev/vda2 /mnt/var/tmp
 
 pacstrap /mnt base base-devel linux linux-firmware grub btrfs-progs openssh \
-  vim snapper git subversion bat exa
+  vim snapper git subversion bat exa wget \
+  nginx p7zip go mlocate \
+  nload iftop net-tools
 
 genfstab -U /mnt >> /mnt/etc/fstab
