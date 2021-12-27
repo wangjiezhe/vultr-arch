@@ -1,0 +1,13 @@
+[Unit]
+Description=Update attacker database for nftables
+RequiresMountsFor=/var/log
+After=nftables.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/block-attacker
+
+# performance options
+Nice=19
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7

@@ -1,0 +1,44 @@
+#!/bin/bash
+
+NGINX_LOGDIR="/var/log/nginx"
+NGINX_LOG="${NGINX_LOGDIR}/access.log"
+DB_DIR="/var/db/nginx"
+NFTABLES_CONFDIR="/etc/nftables.d"
+
+## 初始化数据库
+[ ! -f ${DB_DIR}/gaocc.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg gaocc | awk '{print $1}' | cut -d . -f 1-3 | sort | uniq | sed -e 's/$/.0\/24/' > ${DB_DIR}/gaocc.db
+[ ! -f ${DB_DIR}/nmp.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg -i -e "(myqsl|pma|phpmyadmin)" | awk '{print $1}' | sort | uniq > ${DB_DIR}/nmp.db
+[ ! -f ${DB_DIR}/wp.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg wp | awk '{print $1}' | sort | uniq > ${DB_DIR}/wp.db
+[ ! -f ${DB_DIR}/jndi.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg jndi | awk '{print $1}' | sort | uniq > ${DB_DIR}/jndi.db
+[ ! -f ${DB_DIR}/azenv.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg azenv | awk '{print $1}' | sort | uniq > ${DB_DIR}/azenv.db
+[ ! -f ${DB_DIR}/env.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg "\.env" | awk '{print $1}' | sort | uniq > ${DB_DIR}/env.db
+
+## 更新数据库
+echo "Block GFW detection:"
+cat ${NGINX_LOG} | rg gaocc | awk '{print $1}' | cut -d . -f 1-3 | sort | uniq | sed -e 's/$/.0\/24/' | tee -a ${DB_DIR}/gaocc.db
+echo "Block LNMP detection:"
+cat ${NGINX_LOG} | rg -i -e "(myqsl|pma|phpmyadmin)" | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/nmp.db
+echo "Block wordpress detection:"
+cat ${NGINX_LOG} | rg wp | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/wp.db
+echo "Block java attack:"
+cat ${NGINX_LOG} | rg jndi | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/jndi.db
+echo "Block azenv attack:"
+cat ${NGINX_LOG} | rg azenv | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/azenv.db
+echo "Block .env detection:"
+cat ${NGINX_LOG} | rg "\.env" | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/env.db
+
+## 更新 nftables 配置文件
+for DB_NAME in gaocc nmp wp jndi azenv env
+do
+  mv ${DB_DIR}/${DB_NAME}.db ${DB_DIR}/${DB_NAME}.db.old
+  cat ${DB_DIR}/${DB_NAME}.db.old | sort | uniq > ${DB_DIR}/${DB_NAME}.db
+  rm ${DB_DIR}/${DB_NAME}.db.old
+  echo "define blockip_${DB_NAME} = {" > ${NFTABLES_CONFDIR}/blockip-${DB_NAME}.nft
+  cat ${DB_DIR}/${DB_NAME}.db | sed -e 's/^/  /' -e 's/$/,/' >> ${NFTABLES_CONFDIR}/blockip-${DB_NAME}.nft
+  echo '}' >> ${NFTABLES_CONFDIR}/blockip-${DB_NAME}.nft
+done
+
+## 重启 nftables 服务
+systemctl restart nftables
+sleep 1
+systemctl restart sshguard

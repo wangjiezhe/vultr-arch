@@ -1,0 +1,63 @@
+# block ip from scanning
+
+include "/etc/nftables.d/blockip-wp.nft"
+
+include "/etc/nftables.d/blockip-gaocc.nft"
+
+include "/etc/nftables.d/blockip-nmp.nft"
+
+include "/etc/nftables.d/blockip-jndi.nft"
+
+include "/etc/nftables.d/blockip-env.nft"
+
+include "/etc/nftables.d/blockip-azenv.nft"
+
+table ip block {
+  set blockip-wp {
+    type ipv4_addr
+    flags interval
+    elements = $blockip_wp
+  }
+
+  set blockip-gaocc {
+    type ipv4_addr
+    flags interval
+    elements = $blockip_gaocc
+  }
+
+  set blockip-nmp {
+    type ipv4_addr
+    flags interval
+    elements = $blockip_nmp
+  }
+
+  set blockip-jndi {
+    type ipv4_addr
+    flags interval
+    elements = $blockip_jndi
+  }
+
+  set blockip-env {
+    type ipv4_addr
+    flags interval
+    elements = $blockip_env
+  }
+
+  set blockip-azenv {
+    type ipv4_addr
+    flags interval
+    elements = $blockip_azenv
+  }
+
+  chain blacklist {
+      type filter hook input priority -10; policy accept;
+      ip saddr @blockip-wp drop
+      ip saddr @blockip-gaocc drop
+      ip saddr @blockip-nmp drop
+      ip saddr @blockip-jndi drop
+      ip saddr @blockip-env drop
+      ip saddr @blockip-azenv drop
+      ip saddr 14.23.164.60 drop
+      ip saddr 125.88.168.115 drop
+  }
+}

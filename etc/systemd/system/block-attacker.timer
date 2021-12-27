@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily update attacker database for nftables
+
+[Timer]
+OnCalendar=*-*-* 23:30:00
+AccuracySec=600s
+Persistent=true
+
+[Install]
+WantedBy=timers.target
