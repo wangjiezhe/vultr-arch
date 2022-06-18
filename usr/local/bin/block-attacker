@@ -8,7 +8,7 @@ NFTABLES_CONFDIR="/etc/nftables.d"
 ## 初始化数据库
 [ ! -f ${DB_DIR}/gaocc.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg gaocc | awk '{print $1}' | cut -d . -f 1-3 | sort | uniq | sed -e 's/$/.0\/24/' > ${DB_DIR}/gaocc.db
 [ ! -f ${DB_DIR}/nmp.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg -i -e "(myqsl|pma|phpmyadmin)" | awk '{print $1}' | sort | uniq > ${DB_DIR}/nmp.db
-[ ! -f ${DB_DIR}/wp.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg wp | awk '{print $1}' | sort | uniq > ${DB_DIR}/wp.db
+[ ! -f ${DB_DIR}/wp.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg -e "(/wp(-(content|admin|login|includes)*)/|/wp[^ ]*?\.php)" | awk '{print $1}' | sort | uniq > ${DB_DIR}/wp.db
 [ ! -f ${DB_DIR}/jndi.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg jndi | awk '{print $1}' | sort | uniq > ${DB_DIR}/jndi.db
 [ ! -f ${DB_DIR}/azenv.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg azenv | awk '{print $1}' | sort | uniq > ${DB_DIR}/azenv.db
 [ ! -f ${DB_DIR}/env.db ] && zcat ${NGINX_LOGDIR}/*.gz | rg "\.env" | awk '{print $1}' | sort | uniq > ${DB_DIR}/env.db
@@ -19,7 +19,7 @@ cat ${NGINX_LOG} | rg gaocc | awk '{print $1}' | cut -d . -f 1-3 | sort | uniq |
 echo "Block LNMP detection:"
 cat ${NGINX_LOG} | rg -i -e "(myqsl|pma|phpmyadmin)" | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/nmp.db
 echo "Block wordpress detection:"
-cat ${NGINX_LOG} | rg wp | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/wp.db
+cat ${NGINX_LOG} | rg -e "(/wp(-(content|admin|login|includes)*)/|/wp[^ ]*?\.php)" | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/wp.db
 echo "Block java attack:"
 cat ${NGINX_LOG} | rg jndi | awk '{print $1}' | sort | uniq | tee -a ${DB_DIR}/jndi.db
 echo "Block azenv attack:"
