@@ -125,3 +125,32 @@ zinit ice lucid wait atload="zpcompinit; zpcdreplay; unalias gp gap"; zinit snip
 zinit ice svn; zinit snippet OMZ::plugins/gitfast
 
 zinit ice svn; zinit snippet OMZ::plugins/yarn
+
+# Yaourt
+if (( $+commands[yaourt] )); then
+  alias yaconf='yaourt -C'
+  alias yaupg='yaourt -Syua'
+  alias yasu='yaourt -Syua --noconfirm'
+  alias yain='yaourt -S'
+  alias yains='yaourt -U'
+  alias yare='yaourt -R'
+  alias yarem='yaourt -Rns'
+  alias yarep='yaourt -Si'
+  alias yareps='yaourt -Ss'
+  alias yaloc='yaourt -Qi'
+  alias yalocs='yaourt -Qs'
+  alias yalst='yaourt -Qe'
+  alias yaorph='yaourt -Qtd'
+  alias yainsd='yaourt -S --asdeps'
+  alias yamir='yaourt -Syy'
+
+  if (( $+commands[abs] && $+commands[aur] )); then
+    alias yaupd='yaourt -Sy && sudo abs && sudo aur'
+  elif (( $+commands[abs] )); then
+    alias yaupd='yaourt -Sy && sudo abs'
+  elif (( $+commands[aur] )); then
+    alias yaupd='yaourt -Sy && sudo aur'
+  else
+    alias yaupd='yaourt -Sy'
+  fi
+fi
